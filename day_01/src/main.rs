@@ -65,40 +65,20 @@ fn part_two<R: BufRead>(reader: R) -> Result<(), String> {
         let line = line.map_err(|err| format!("Failed reading line: {err}"))?;
         let value = parse_signed_value(&line)?;
         println!("Dial is at {dial}");
-        println!("The dial is rotated {line} to point at {point}", line=line, point=(dial + value).rem_euclid(100));
+        println!("The dial is rotated {line} to point at {point}", line = line, point = (dial + value).rem_euclid(100));
 
-        // we want to monitor all over- and under-flows and count them as passing zero.
-        if value < 0 {
-            // we are subtracting
-            let normalized_dial = if dial == 0 { 100 } else { dial };
-            let mut i = -1;
-            let mut rotations_past_zero = 0;
-            while i >= value {
-                if (dial + i).rem_euclid(100) == 0 {
-                    println!("{normalized_dial} x {i}", normalized_dial = dial, i = i);
-                    rotations_past_zero += 1;
-                }
-                i -= 1;
-            }
-            println!("Rotated past zero {rotations_past_zero} times");
-            count_zero += rotations_past_zero;
-        } else {
-            // we are adding
-            let mut i = 1;
-            let mut rotations_past_zero = 0;
-            while i <= value {
-                if (dial + i).rem_euclid(100) == 0 {
-                    println!("{normalized_dial} x {i}", normalized_dial = dial, i = i);
-                    rotations_past_zero += 1;
-                }
-                i += 1;
-            }
-            println!("Rotated past zero {rotations_past_zero} times");
-            count_zero += rotations_past_zero;
+        if dial == 0 {
+            // we start at zero, so just count total rotations
+            count_zero += (dial + value).abs() / 100;
+        } else if dial + value <= 0 {
+            // +1 when we pass zero for the first time
+            count_zero += 1 + (dial + value).abs() / 100;
+        } else if dial + value >= 100 {
+            count_zero += (dial + value) / 100;
         }
         dial = (dial + value).rem_euclid(100);
-        println!("");
     }
+
     println!("Zero count: {count_zero}");
     Ok(())
 }
